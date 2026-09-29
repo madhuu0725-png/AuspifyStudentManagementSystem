@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AcademiaPulse is a modern, high-performance Student Record Management System for managing student profiles, academic performance, and institutional enrollments.">
+  <meta name="theme-color" content="#0a0e1a">
+  <title>AcademiaPulse &mdash; Student Records &amp; Information System</title>
+  
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Custom Design System -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- =========================================================================
+       Application Header
+       ========================================================================= -->
+  <header class="app-header" role="banner">
+    <div class="header-container">
+      
+      <!-- Brand Logo & Identity -->
+      <a class="brand-section" href="/" aria-label="AcademiaPulse Home">
+        <div class="brand-logo-wrap">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3L1 9L12 15L21 10.09V17H23V9M5 13.18V17.18C5 19.39 8.13 21 12 21C15.87 21 19 19.39 19 17.18V13.18L12 17.09L5 13.18Z" />
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h1>AcademiaPulse <span class="brand-badge">SIS v2.4</span></h1>
+          <p>Institutional Student Records &amp; Academic Management</p>
+        </div>
+      </a>
+
+      <!-- Global Live Search -->
+      <div class="header-search">
+        <div class="search-input-wrapper">
+          <i class="fas fa-search search-icon" aria-hidden="true"></i>
+          <input 
+            type="search" 
+            id="globalSearchInput" 
+            class="search-input" 
+            placeholder="Search by student name, ID, email, or department..."
+            aria-label="Search student records"
+            autocomplete="off"
+          />
+          <button id="searchClearBtn" class="search-clear-btn" title="Clear search" aria-label="Clear search">
+            <i class="fas fa-times"></i>
+          </button>
+          <span class="search-shortcut" title="Press / to search">/</span>
+        </div>
+      </div>
+
+      <!-- Header Action Controls -->
+      <div class="header-actions">
+        <button id="addStudentBtn" class="btn btn-primary" title="Add a new student record">
+          <i class="fas fa-user-plus"></i>
+          <span>Add Student</span>
+        </button>
+
+        <button id="exportCsvBtn" class="btn btn-secondary" title="Export records to CSV">
+          <i class="fas fa-file-csv"></i>
+          <span>Export</span>
+        </button>
+
+        <button id="resetDataBtn" class="btn-icon" title="Reset to demo sample data" aria-label="Reset demo data">
+          <i class="fas fa-rotate"></i>
+        </button>
+
+        <button id="themeToggleBtn" class="btn-icon" title="Toggle Dark / Light theme" aria-label="Toggle theme">
+          <i id="themeToggleIcon" class="fas fa-moon"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       Main Workspace
+       ========================================================================= -->
+  <main class="main-container" role="main">
+
+    <!-- KPI Analytics Section -->
+    <section class="stats-section" aria-label="Student Body Metrics">
+      <div class="stats-grid">
+        
+        <div class="stat-card card-blue">
+          <div class="stat-icon">
+            <i class="fas fa-user-graduate"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Total Enrolled</div>
+            <div class="stat-value" id="statTotalStudents">&mdash;</div>
+            <div class="stat-subtext">
+              <span class="stat-badge badge-success">+12%</span> active intake
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card card-green">
+          <div class="stat-icon">
+            <i class="fas fa-circle-check"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Active Students</div>
+            <div class="stat-value" id="statActiveStudents">&mdash;</div>
+            <div class="stat-subtext" id="statActiveRate">&mdash;</div>
+          </div>
+        </div>
+
+        <div class="stat-card card-purple">
+          <div class="stat-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Average GPA</div>
+            <div class="stat-value">
+              <span id="statAverageGpa">&mdash;</span>
+              <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">/ 4.0</span>
+            </div>
+            <div class="stat-subtext">
+              <span class="stat-badge badge-info" id="statHonorRoll">&mdash;</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card card-cyan">
+          <div class="stat-icon">
+            <i class="fas fa-building-columns"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Academic Departments</div>
+            <div class="stat-value" id="statDepartmentsCount">&mdash;</div>
+            <div class="stat-subtext">Across all colleges</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Toolbar & Filter Controls -->
+    <section class="toolbar-panel" aria-label="Filters and Controls">
+      <div class="toolbar-top">
+        
+        <!-- Department Filter -->
+        <div class="filter-group">
+          <label class="filter-label" for="departmentFilter">
+            <i class="fas fa-filter"></i> Department:
+          </label>
+          <select id="departmentFilter" class="select-control">
+            <option value="All">All Departments</option>
+            <option value="Computer Science &amp; AI">Computer Science &amp; AI</option>
+            <option value="Data Science &amp; Analytics">Data Science &amp; Analytics</option>
+            <option value="Cybersecurity &amp; Networks">Cybersecurity &amp; Networks</option>
+            <option value="Software Engineering">Software Engineering</option>
+            <option value="Biomedical Engineering">Biomedical Engineering</option>
+            <option value="Electrical &amp; Computer Eng">Electrical &amp; Computer Eng</option>
+            <option value="Business Administration">Business Administration</option>
+            <option value="Mechanical Engineering">Mechanical Engineering</option>
+          </select>
+        </div>
+
+        <!-- Sort Select -->
+        <div class="filter-group">
+          <label class="filter-label" for="sortSelect">
+            <i class="fas fa-arrow-down-wide-short"></i> Sort By:
+          </label>
+          <select id="sortSelect" class="select-control">
+            <option value="id_desc">Recently Added</option>
+            <option value="name_asc">Name (A &rarr; Z)</option>
+            <option value="name_desc">Name (Z &rarr; A)</option>
+            <option value="gpa_desc">GPA (Highest &rarr; Lowest)</option>
+            <option value="gpa_asc">GPA (Lowest &rarr; Highest)</option>
+            <option value="student_id_asc">Student ID (Ascending)</option>
+          </select>
+        </div>
+
+        <!-- View Mode Switcher -->
+        <div class="toolbar-controls-right">
+          <div class="view-toggle" role="group" aria-label="Display View">
+            <button id="viewTableBtn" class="view-btn active" title="Table View">
+              <i class="fas fa-table-list"></i> Table
+            </button>
+            <button id="viewGridBtn" class="view-btn" title="Grid View">
+              <i class="fas fa-grip"></i> Cards
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Status Quick Filters and Counter -->
+      <div class="results-info">
+        <div class="status-pill-list" role="radiogroup" aria-label="Status filter">
+          <button class="status-filter-pill active" data-status="All">All Statuses</button>
+          <button class="status-filter-pill" data-status="Active">Active</button>
+          <button class="status-filter-pill" data-status="On Leave">On Leave</button>
+          <button class="status-filter-pill" data-status="Graduated">Graduated</button>
+          <button class="status-filter-pill" data-status="Inactive">Inactive</button>
+        </div>
+
+        <span id="resultsCount" style="font-weight: 600;">Loading records...</span>
+      </div>
+    </section>
+
+    <!-- Student Records Container -->
+    <section id="studentsContainer" aria-label="Student Records List" aria-live="polite">
+      <!-- Dynamic table or grid view rendered via static/js/app.js -->
+    </section>
+
+    <!-- Empty State Placeholder -->
+    <div id="emptyState" class="empty-state" style="display: none;">
+      <div class="empty-state-icon">
+        <i class="fas fa-users-slash"></i>
+      </div>
+      <h3>No Student Records Found</h3>
+      <p>We couldn't find any student matching your active query or selected filters. Try broadening your criteria or enroll a new student.</p>
+      <button id="emptyAddBtn" class="btn btn-primary" style="margin-top: 0.5rem;">
+        <i class="fas fa-user-plus"></i> Add New Student
+      </button>
+    </div>
+
+  </main>
+
+  <!-- =========================================================================
+       Modal: Add & Edit Student Form
+       ========================================================================= -->
+  <div id="studentModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <form id="studentForm" class="modal-container" novalidate>
+      
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-title-icon">
+            <i class="fas fa-user-graduate"></i>
+          </div>
+          <div>
+            <h2 id="modalTitle" class="modal-title">Add New Student Record</h2>
+            <p id="modalSubtitle" class="modal-subtitle">Enter student academic and personal information</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        
+        <!-- Section 1: Basic Profile Details -->
+        <div class="form-section-title">
+          <i class="fas fa-id-card"></i> 1. Basic Information
+        </div>
+        <div class="form-grid">
+          
+          <div class="form-group">
+            <label class="form-label" for="field_first_name">
+              First Name <span class="required">*</span>
+            </label>
+            <input type="text" id="field_first_name" class="input-control" placeholder="e.g. Aria" required maxlength="50">
+            <span id="err_first_name" class="field-error-msg"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="field_last_name">
+              Last Name <span class="required">*</span>
+            </label>
+            <input type="text" id="field_last_name" class="input-control" placeholder="e.g. Montgomery" required maxlength="50">
+            <span id="err_last_name" class="field-error-msg"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="field_student_id">
+              Student ID
+            </label>
+            <input type="text" id="field_student_id" class="input-control" placeholder="e.g. STU-2026-001" maxlength="30">
+            <span id="err_student_id" class="field-error-msg"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="field_status">
+              Enrollment Status <span class="required">*</span>
+            </label>
+            <select id="field_status" class="select-control input-control" required>
+              <option value="Active">Active</option>
+              <option value="On Leave">On Leave</option>
+              <option value="Graduated">Graduated</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+            <span id="err_status" class="field-error-msg"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="field_date_of_birth">Date of Birth</label>
+            <input type="date" id="field_date_of_birth" class="input-control">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="field_gender">Gender</label>
+            <select id="field_gender" class="select-control input-control">
+              <option value="">Select Gender</option>
+              <option value="Female">Female</option>
+              <option value="Male">Male</option>
+              <option value="Non-Binary">Non-Binary</option>
+              <option value="Prefer not to say">Prefer not to say</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Section 2: Academic Details -->
+        <div class="form-section-title" style="margin-top: 0.5rem;">
+          <i class="fas fa-graduation-cap"></i> 2. Academic Program &amp; Performance
+        </div>
+        <div class="form-grid">
+          
+          <div class="form-group">
+            <label class="form-label" for="field_department">
+              Department / Major <span class="required">*</span>
+            </label>
+            <select id="field_department" class="select-control input-control" required>
+              <option value="">Select Department</option>
+              <option value="Computer Science &amp; AI">Computer Science &amp; AI</option>
+              <option value="Data Science &amp; Analytics">Data Science &amp; Analytics</option>
+              <option value="Cybersecurity &amp; Networks">Cybersecurity &amp; Networks</option>
+              <option value="Software Engineering">Software Engineering</option>
+              <option value="Biomedical Engineering">Biomedical Engineering</option>
+              <option value="Electrical &amp; Computer Eng">Electrical &amp; Computer Eng</option>
+              <option value="Business Administration">Business Administration</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+            </select>
+            <span id="err_department" class="field-error-msg"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="field_year_level">
+              Year Level <span class="required">*</span>
+            </label>
+            <select id="field_year_level" class="select-control input-control" required>
+              <option value="">Select Year Level</option>
+              <option value="1st Year">1st Year (Freshman)</option>
+              <option value="2nd Year">2nd Year (Sophomore)</option>
+              <option value="3rd Year">3rd Year (Junior)</option>
+              <option value="4th Year">4th Year (Senior)</option>
+              <option value="Masters">Graduate / Masters</option>
+              <option value="PhD">Doctoral / PhD</option>
+            </select>
+            <span id="err_year_level" class="field-error-msg"></span>
+          </div>
+
+          <!-- GPA Dual Input Slider & Number -->
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label" for="field_gpa">
+              Cumulative GPA (0.00 &ndash; 4.00) <span class="required">*</span>
+            </label>
+            <div class="gpa-slider-wrap">
+              <input type="range" id="field_gpa_slider" min="0.0" max="4.0" step="0.01" value="3.50">
+              <input type="number" id="field_gpa" class="input-control" min="0.0" max="4.0" step="0.01" value="3.50" style="max-width: 100px;">
+              <span class="gpa-number-preview" id="gpaSliderValue">3.50</span>
+            </div>
+            <span id="err_gpa" class="field-error-msg"></span>
+          </div>
+
+        </div>
+
+        <!-- Section 3: Contact & Emergency -->
+        <div class="form-section-title" style="margin-top: 0.5rem;">
+          <i class="fas fa-address-book"></i> 3. Contact &amp; Emergency Information
+        </div>
+        <div class="form-grid">
+          
+          <div class="form-group">
+            <label class="form-label" for="field_email">
+              Institutional Email <span class="required">*</span>
+            </label>
+            <input type="email" id="field_email" class="input-control" placeholder="student@university.edu" required>
+            <span id="err_email" class="field-error-msg"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="field_phone">
+              Phone Number <span class="required">*</span>
+            </label>
+            <input type="tel" id="field_phone" class="input-control" placeholder="+1 (555) 000-0000" required>
+            <span id="err_phone" class="field-error-msg"></span>
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label" for="field_emergency_contact">
+              Emergency Contact (Name, Relationship &amp; Phone)
+            </label>
+            <input type="text" id="field_emergency_contact" class="input-control" placeholder="e.g. John Doe (Father) - +1 (555) 123-4567">
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label" for="field_address">Residential Address</label>
+            <input type="text" id="field_address" class="input-control" placeholder="Street Address, City, State, ZIP">
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label" for="field_notes">Advisory Notes &amp; Honors Remarks</label>
+            <textarea id="field_notes" class="textarea-control" rows="3" placeholder="Additional academic notes, research projects, or extracurricular achievements..."></textarea>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-cancel-btn">Cancel</button>
+        <button type="submit" id="submitStudentBtn" class="btn btn-primary btn-add-highlight">
+          <i class="fas fa-user-plus" id="submitBtnIcon"></i>
+          <span id="submitBtnText">+ Add Student</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- =========================================================================
+       Modal: View Student Details
+       ========================================================================= -->
+  <div id="detailsModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="detailsName">
+    <div class="modal-container" style="max-width: 720px;">
+      
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-title-icon" style="background: var(--info-light); color: var(--info);">
+            <i class="fas fa-address-card"></i>
+          </div>
+          <div>
+            <h2 class="modal-title">Student Profile Dossier</h2>
+            <p class="modal-subtitle">Official verified university record</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        
+        <!-- Profile Banner -->
+        <div class="student-profile-hero">
+          <div class="profile-avatar-large" id="detailsAvatar">--</div>
+          <div class="profile-hero-meta">
+            <h2 id="detailsName">&mdash;</h2>
+            <div class="profile-hero-tags">
+              <span class="student-id-pill" id="detailsStudentId">&mdash;</span>
+              <span id="detailsStatus" class="status-pill status-active">
+                <span class="status-dot"></span> Active
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Details Tiles Grid -->
+        <div class="details-grid">
+          
+          <div class="detail-tile">
+            <div class="detail-tile-label"><i class="fas fa-graduation-cap"></i> Academic Department</div>
+            <div class="detail-tile-value" id="detailsDept">&mdash;</div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="detail-tile-label"><i class="fas fa-layer-group"></i> Class Standing</div>
+            <div class="detail-tile-value" id="detailsYear">&mdash;</div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="detail-tile-label"><i class="fas fa-chart-line"></i> Cumulative Performance</div>
+            <div class="detail-tile-value">
+              <span id="detailsGpa" class="gpa-badge gpa-excellent">&mdash;</span>
+            </div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="detail-tile-label"><i class="fas fa-calendar-check"></i> Enrolled Since</div>
+            <div class="detail-tile-value" id="detailsCreatedAt">&mdash;</div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="detail-tile-label"><i class="fas fa-envelope"></i> University Email</div>
+            <div class="detail-tile-value" id="detailsEmail">&mdash;</div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="detail-tile-label"><i class="fas fa-phone"></i> Primary Contact</div>
+            <div class="detail-tile-value" id="detailsPhone">&mdash;</div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="detail-tile-label"><i class="fas fa-cake-candles"></i> Date of Birth</div>
+            <div class="detail-tile-value" id="detailsDob">&mdash;</div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="detail-tile-label"><i class="fas fa-venus-mars"></i> Gender</div>
+            <div class="detail-tile-value" id="detailsGender">&mdash;</div>
+          </div>
+
+          <div class="detail-tile full-width">
+            <div class="detail-tile-label"><i class="fas fa-map-location-dot"></i> Residential Address</div>
+            <div class="detail-tile-value" id="detailsAddress">&mdash;</div>
+          </div>
+
+          <div class="detail-tile full-width">
+            <div class="detail-tile-label"><i class="fas fa-shield-heart"></i> Emergency Contact</div>
+            <div class="detail-tile-value" id="detailsEmergency">&mdash;</div>
+          </div>
+
+          <div class="detail-tile full-width">
+            <div class="detail-tile-label"><i class="fas fa-clipboard-list"></i> Advisor &amp; Academic Notes</div>
+            <div class="detail-tile-value" id="detailsNotes" style="font-weight: 400; line-height: 1.6; color: var(--text-secondary);">&mdash;</div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="modal-footer" style="justify-content: space-between;">
+        <div>
+          <button id="detailsPrintBtn" class="btn btn-secondary" title="Print this student profile">
+            <i class="fas fa-print"></i> Print Profile
+          </button>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button id="detailsDeleteBtn" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+          <button id="detailsEditBtn" class="btn btn-primary">
+            <i class="fas fa-pen"></i> Edit Record
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Modal: Delete Confirmation
+       ========================================================================= -->
+  <div id="deleteModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deleteDialogTitle">
+    <div class="modal-container" style="max-width: 480px;">
+      
+      <div class="modal-body delete-dialog">
+        <div class="delete-dialog-icon">
+          <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <h3 id="deleteDialogTitle">Delete Student Record?</h3>
+        <p>
+          Are you sure you want to permanently remove <span id="deleteTargetName" class="delete-highlight">this student</span> from the university database?
+        </p>
+        <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--danger);">
+          <i class="fas fa-circle-info"></i> This action is permanent and cannot be undone.
+        </p>
+      </div>
+
+      <div class="modal-footer" style="justify-content: center;">
+        <button type="button" class="btn btn-secondary modal-cancel-btn">Cancel</button>
+        <button type="button" id="confirmDeleteBtn" class="btn btn-danger">
+          <i class="fas fa-trash-can"></i> Yes, Delete Record
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Toast Notification Stack
+       ========================================================================= -->
+  <div id="toastContainer" class="toast-container" aria-live="assertive"></div>
+
+  <!-- =========================================================================
+       Footer
+       ========================================================================= -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div>
+        <strong>AcademiaPulse SIS</strong> &bull; Complete Full-Stack Student Information System
+      </div>
+      <div class="footer-links">
+        <span>SQLite 3 &bull; Flask &bull; REST API &bull; SPA</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script src="/static/js/app.js"></script>
+
+</body>
+</html>
